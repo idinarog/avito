@@ -30,11 +30,11 @@ class UserRepository:
             session.commit()
             
             # Создаем настройки для пользователя
-            settings = Settings(user_id=user.id)
+            settings = Settings(user_id=user['id'])
             session.add(settings)
             session.commit()
             
-            user_id = user.id
+            user_id = user['id']
             print(f"✅ Пользователь создан: {username} (ID: {user_id})")
             return user_id
             
@@ -78,7 +78,7 @@ class UserRepository:
         session = self.db.get_session()
         try:
             merged_user = session.merge(user)
-            merged_user.updated_at = datetime.now()
+            merged_user['updated_at'] = datetime.now()
             session.commit()
             return True
         except Exception as e:

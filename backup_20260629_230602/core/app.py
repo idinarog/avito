@@ -139,7 +139,7 @@ class Application:
         login_dialog = LoginDialog(self)
         if login_dialog.exec_() == LoginDialog.Accepted:
             self.current_user = login_dialog.user
-            self.config.set("user/current_id", self.current_user.id)
+            self.config.set("user/current_id", self.current_user['id'])
             self.show_main_window()
         else:
             sys.exit(0)

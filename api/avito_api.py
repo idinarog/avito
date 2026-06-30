@@ -52,27 +52,37 @@ class AvitoAPI:
             "Accept": "application/json"
         }
     
-    def get_items(self, user_id: str, status: str = None, page: int = 1, per_page: int = 50) -> Dict:
-        """Получение списка объявлений"""
-        endpoint = f"core/v1/accounts/{user_id}/items"
+    
+    
+    
+    def get_items(self, status: str = None, page: int = 1, per_page: int = 50) -> Dict:
+        """
+        Получение списка объявлений авторизованного пользователя.
+        """
+        endpoint = "core/v1/items"
         params = {
             "page": page,
             "per_page": min(per_page, 100)
         }
         if status:
             params["status"] = status
-        
+
         try:
             response = requests.get(
                 f"{self.base_url}{endpoint}",
                 headers=self._get_headers(),
                 params=params
             )
-            response.raise_for_status()  # выбросит исключение при плохом статусе
+            response.raise_for_status()
             return response.json()
         except requests.exceptions.RequestException as e:
-            print(f"❌ Ошибка API: {e}")
-            return {"items": [], "total_pages": 1}
+            print(f"❌ Ошибка API при получении объявлений: {e}")
+            if hasattr(e, 'response') and e.response:
+                print(f"   Ответ сервера: {e.response.text}")
+            return {"resources": []}
+
+
+
     
     def get_item_stats(self, user_id: str, item_id: str) -> Dict:
         """Получение статистики по объявлению"""

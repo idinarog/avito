@@ -1,0 +1,19 @@
+import sqlite3
+
+class DatabaseManager:
+    def __init__(self, db_path):
+        self.db_path = db_path
+        self.connection = sqlite3.connect(db_path)
+        self.connection.row_factory = sqlite3.Row
+        self.conn = self.connection   # <- алиас для совместимости
+
+    def execute(self, query, params=None):
+        if params:
+            return self.connection.execute(query, params)
+        return self.connection.execute(query)
+
+    def commit(self):
+        self.connection.commit()
+
+    def close(self):
+        self.connection.close()

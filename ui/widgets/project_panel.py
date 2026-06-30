@@ -127,7 +127,7 @@ class ProjectPanel(QWidget):
         if not user:
             return
 
-        projects = self.app.project_repo.get_by_user(user.id)
+        projects = self.app.project_repo.get_by_user(user['id'])
         for project in projects:
             item = QListWidgetItem(f"📁 {project.name}")
             item.setData(Qt.UserRole, project.id)
@@ -145,7 +145,7 @@ class ProjectPanel(QWidget):
         self.current_project_id = project_id
 
         user = self.app.get_current_user()
-        projects = self.app.project_repo.get_by_user(user.id)
+        projects = self.app.project_repo.get_by_user(user['id'])
         for project in projects:
             if project.id == project_id:
                 self.app.set_current_project(project)

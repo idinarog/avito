@@ -11,7 +11,7 @@ from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 
 from core.app import Application
-from core.session import Session  # <-- добавлено
+from core.session import Session
 
 
 class LoginDialog(QDialog):
@@ -153,8 +153,8 @@ class LoginDialog(QDialog):
             users = self.app.user_repo.get_all_active()
             for user in users:
                 self.users_combo.addItem(
-                    f"{user.username} (ID: {user.user_id_avito})",
-                    user.id
+                    f"{user['username']} (ID: {user['user_id_avito']})",
+                    user['id']
                 )
         except Exception as e:
             print(f"⚠️ Ошибка загрузки пользователей: {e}")
@@ -165,8 +165,8 @@ class LoginDialog(QDialog):
             user_id = self.users_combo.currentData()
             user = self.app.user_repo.get_by_id(user_id)
             if user:
-                self.username_input.setText(user.username)
-                self.user_id_input.setText(user.user_id_avito)
+                self.username_input.setText(user['username'])
+                self.user_id_input.setText(user['user_id_avito'])
                 self.status_label.setText("")
                 self.status_label.setStyleSheet("color: #00A651;")
                 self.status_label.setText("✅ Пользователь выбран")
@@ -295,8 +295,8 @@ class LoginDialog(QDialog):
 
         # Попытка найти пользователя в БД
         user = self.app.user_repo.get_by_username(username)
-        if user and user.user_id_avito != user_id_avito:
-            user.user_id_avito = user_id_avito
+        if user and user['user_id_avito'] != user_id_avito:
+            user['user_id_avito'] = user_id_avito
             self.app.user_repo.update(user)
         elif not user:
             user_id = self.app.user_repo.create(username, user_id_avito)
@@ -313,17 +313,25 @@ class LoginDialog(QDialog):
             return
 
         # Проверяем, есть ли у пользователя действующий токен
-        if user.access_token and user.token_expires_at and user.token_expires_at > datetime.now():
-            # Токен валиден – входим сразу
-            self.user = user
-            self.status_label.setText("✅ Автоматический вход по токену")
-            self.status_label.setStyleSheet("color: #00A651;")
+        if user.get('access_token') and user.get('token_expires_at'):
+            # Преобразуем строку в datetime, если это строка
+            expires = user['token_expires_at']
+            if isinstance(expires, str):
+                try:
+                    expires = datetime.fromisoformat(expires)
+                except ValueError:
+                    expires = None
+            if expires and expires > datetime.now():
+                # Токен валиден – входим сразу
+                self.user = user
+                self.status_label.setText("✅ Автоматический вход по токену")
+                self.status_label.setStyleSheet("color: #00A651;")
 
-            # Устанавливаем токен в API клиент
-            self.app.avito_api.set_access_token(user.access_token)
-            Session.access_token = user.access_token  # <-- добавляем
-            self.accept()
-            return
+                self.app.avito_api.set_access_token(user['access_token'])
+                self.app.current_user = user
+                Session.access_token = user['access_token']
+                self.accept()
+                return
 
         # Если токена нет или он истёк – требуется код авторизации
         if not auth_code:
@@ -339,16 +347,15 @@ class LoginDialog(QDialog):
         tokens = self.get_access_token(auth_code)
         if tokens:
             access_token, refresh_token = tokens
-            user.access_token = access_token
-            user.refresh_token = refresh_token
-            user.token_expires_at = datetime.now() + timedelta(hours=24)
+            user['access_token'] = access_token
+            user['refresh_token'] = refresh_token
+            user['token_expires_at'] = (datetime.now() + timedelta(hours=24)).isoformat()
             self.app.user_repo.update(user)
 
-            # Устанавливаем токен в API клиент
             self.app.avito_api.set_access_token(access_token)
-            Session.access_token = access_token  # <-- добавляем
-
             self.user = user
+            self.app.current_user = user
+            Session.access_token = access_token
             self.status_label.setText("✅ Токен получен! Вход выполнен.")
             self.status_label.setStyleSheet("color: #00A651;")
             self.accept()
@@ -357,5 +364,4 @@ class LoginDialog(QDialog):
             self.status_label.setStyleSheet("color: #FF6B6B;")
 
     def get_user(self):
-        """Возвращает текущего пользователя"""
         return self.user

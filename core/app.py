@@ -80,8 +80,10 @@ class Application:
         print("📁 Инициализация базы данных...")
 
         db_path = self.config.get("db_path")
+        from database import DatabaseManager
+        self.db = DatabaseManager(db_path)
         migration = MigrationManager(db_path)
-        self.db = migration.run_migrations()
+        migration.run_migrations()
 
         # Инициализация репозиториев
         self.user_repo = UserRepository(self.db)
@@ -159,7 +161,7 @@ class Application:
         login_dialog = LoginDialog(self)
         if login_dialog.exec_() == LoginDialog.Accepted:
             self.current_user = login_dialog.user
-            self.config.set("user/current_id", self.current_user.id)
+            self.config.set("user/current_id", self.current_user['id'])
             self.show_main_window()
         else:
             sys.exit(0)

@@ -95,6 +95,6 @@ class StartScreen(QWidget):
                 print("❌ Авторизация не выполнена")
                 return
 
-        self.main = MainApp()
+        self.main = MainApp(self.app)
         self.main.show()
         self.close()

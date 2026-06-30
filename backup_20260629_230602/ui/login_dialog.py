@@ -150,8 +150,8 @@ class LoginDialog(QDialog):
             users = self.app.user_repo.get_all_active()
             for user in users:
                 self.users_combo.addItem(
-                    f"{user.username} (ID: {user.user_id_avito})", 
-                    user.id
+                    f"{user['username"]} (ID: {user['user_id_avito']})", 
+                    user['id']
                 )
         except Exception as e:
             print(f"⚠️ Ошибка загрузки пользователей: {e}")
@@ -162,8 +162,8 @@ class LoginDialog(QDialog):
             user_id = self.users_combo.currentData()
             user = self.app.user_repo.get_by_id(user_id)
             if user:
-                self.username_input.setText(user.username)
-                self.user_id_input.setText(user.user_id_avito)
+                self.username_input.setText(user['username'])
+                self.user_id_input.setText(user['user_id_avito'])
                 self.status_label.setText("")
                 self.status_label.setStyleSheet("color: #00A651;")
                 self.status_label.setText("✅ Пользователь выбран")
@@ -293,8 +293,8 @@ class LoginDialog(QDialog):
         user = self.app.user_repo.get_by_username(username)
         
         if user:
-            if user.user_id_avito != user_id_avito:
-                user.user_id_avito = user_id_avito
+            if user['user_id_avito'] != user_id_avito:
+                user['user_id_avito'] = user_id_avito
                 self.app.user_repo.update(user)
             
             self.user = user
@@ -325,9 +325,9 @@ class LoginDialog(QDialog):
             if tokens:
                 access_token, refresh_token = tokens
                 
-                self.user.access_token = access_token
-                self.user.refresh_token = refresh_token
-                self.user.token_expires_at = datetime.now() + timedelta(hours=24)
+                self.user['access_token'] = access_token
+                self.user['refresh_token'] = refresh_token
+                self.user['token_expires_at'] = datetime.now() + timedelta(hours=24)
                 self.app.user_repo.update(self.user)
                 
                 if self.app.sync_service:

@@ -312,7 +312,7 @@ class Application:
         login_dialog = LoginDialog(self)
         if login_dialog.exec_() == LoginDialog.Accepted:
             self.current_user = login_dialog.user
-            self.config.set("user/current_id", self.current_user.id)
+            self.config.set("user/current_id", self.current_user['id'])
             self.show_main_window()
         else:
             sys.exit(0)
@@ -550,7 +550,7 @@ class UserRepository:
             session.commit()
             
             # Создаем настройки для пользователя
-            settings = Settings(user_id=user.id)
+            settings = Settings(user_id=user['id'])
             session.add(settings)
             session.commit()
             
@@ -1029,7 +1029,7 @@ class LoginDialog(QDialog):
         """Загружает сохраненных пользователей"""
         users = self.app.user_repo.get_all_active()
         for user in users:
-            self.users_combo.addItem(f"{user.username} (ID: {user.user_id_avito})", user.id)
+            self.users_combo.addItem(f"{user['username"]} (ID: {user['user_id_avito']})", user['id'])
     
     def on_user_selected(self, index):
         """Обработчик выбора пользователя из списка"""
@@ -1037,8 +1037,8 @@ class LoginDialog(QDialog):
             user_id = self.users_combo.currentData()
             user = self.app.user_repo.get_by_id(user_id)
             if user:
-                self.username_input.setText(user.username)
-                self.user_id_input.setText(user.user_id_avito)
+                self.username_input.setText(user['username'])
+                self.user_id_input.setText(user['user_id_avito'])
                 self.status_label.setText("")
     
     def login(self):
@@ -1057,8 +1057,8 @@ class LoginDialog(QDialog):
         user = self.app.user_repo.get_by_username(username)
         
         if user:
-            if user.user_id_avito != user_id_avito:
-                user.user_id_avito = user_id_avito
+            if user['user_id_avito'] != user_id_avito:
+                user['user_id_avito'] = user_id_avito
                 self.app.user_repo.update(user)
             
             self.user = user
@@ -1196,7 +1196,7 @@ class MainWindow(QMainWindow):
         """Загрузка проектов"""
         user = self.app.get_current_user()
         if user:
-            print(f"Пользователь: {user.username}")
+            print(f"Пользователь: {user['username"]}")
             self.load_items()
     
     def load_items(self):

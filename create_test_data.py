@@ -31,10 +31,10 @@ def create_test_data():
             print("❌ Нет пользователей в БД. Сначала создайте пользователя через приложение.")
             return False
         
-        print(f"✅ Найден пользователь: {user.username} (ID: {user.id})")
+        print(f"✅ Найден пользователь: {user['username"]} (ID: {user['id']})")
         
         # 2. Проверяем, есть ли уже проекты
-        existing_project = session.query(Project).filter(Project.user_id == user.id).first()
+        existing_project = session.query(Project).filter(Project.user_id == user['id']).first()
         if existing_project:
             print(f"⚠️ Проект уже существует: {existing_project.name}")
             print("   Пропускаем создание...")
@@ -42,7 +42,7 @@ def create_test_data():
         
         # 3. Создаем проект (с user_id)
         project = Project(
-            user_id=user.id,  # ← Обязательное поле!
+            user_id=user['id'],  # ← Обязательное поле!
             name="Тестовый проект",
             description="Проект для проверки генератора XML",
             is_active=True

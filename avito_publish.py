@@ -112,13 +112,13 @@ def publish_to_github(xml_path):
         print("ℹ️ Нет изменений для коммита. Файл уже актуален.")
         return True
     try:
-        subprocess.run(["git", "config", "user.name"], check=True, capture_output=True)
-        subprocess.run(["git", "config", "user.email"], check=True, capture_output=True)
+        subprocess.run(["git", "config", "user['name']"], check=True, capture_output=True)
+        subprocess.run(["git", "config", "user['email']"], check=True, capture_output=True)
     except subprocess.CalledProcessError:
         print("⚠️ Git не настроен! Выполните:")
         print("  cd {}".format(GITHUB_REPO_PATH))
-        print('  git config user.name "Ваше Имя"')
-        print('  git config user.email "ваш_email@example.com"')
+        print('  git config user['name'] "Ваше Имя"')
+        print('  git config user['email'] "ваш_email@example.com"')
         return False
     try:
         subprocess.run(["git", "add", XML_FILENAME], check=True, capture_output=True)

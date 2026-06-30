@@ -200,7 +200,7 @@ class ProjectPanel(QWidget):
         if not user:
             return
         
-        projects = self.app.project_repo.get_by_user(user.id)
+        projects = self.app.project_repo.get_by_user(user['id'])
         
         for project in projects:
             item = QListWidgetItem(f"📁 {project.name}")
@@ -221,7 +221,7 @@ class ProjectPanel(QWidget):
         
         # Получаем проект из БД
         user = self.app.get_current_user()
-        projects = self.app.project_repo.get_by_user(user.id)
+        projects = self.app.project_repo.get_by_user(user['id'])
         
         for project in projects:
             if project.id == project_id:
@@ -922,7 +922,7 @@ class MainWindow(QMainWindow):
         # Информация о пользователе
         user = self.app.get_current_user()
         if user:
-            user_label = QLabel(f"👤 {user.username}")
+            user_label = QLabel(f"👤 {user['username"]}")
             user_label.setStyleSheet("color: #5a7a9a; font-size: 13px;")
             header.addWidget(user_label)
         

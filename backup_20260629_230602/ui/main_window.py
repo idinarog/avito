@@ -131,7 +131,7 @@ class MainWindow(QMainWindow):
         if not user:
             return
         
-        projects = self.app.project_repo.get_by_user(user.id)
+        projects = self.app.project_repo.get_by_user(user['id'])
         
         # Удаляем старые кнопки
         for btn in self.project_buttons:
@@ -355,7 +355,7 @@ class MainWindow(QMainWindow):
         """Загрузка начальных данных"""
         user = self.app.get_current_user()
         if user:
-            print(f"👤 Пользователь: {user.username}")
+            print(f"👤 Пользователь: {user['username"]}")
             self.load_project_buttons()
             self.load_items()
             self.update_sync_info()
@@ -481,7 +481,7 @@ class MainWindow(QMainWindow):
         
         if ok and name:
             user = self.app.get_current_user()
-            project = self.app.project_service.create_project(user.id, name)
+            project = self.app.project_service.create_project(user['id'], name)
             if project:
                 QMessageBox.information(self, "Успех", f"Проект '{name}' создан!")
                 self.load_project_buttons()
@@ -493,7 +493,7 @@ class MainWindow(QMainWindow):
             return
         
         user = self.app.get_current_user()
-        if not user.access_token:
+        if not user['access_token']:
             reply = QMessageBox.question(
                 self,
                 "Требуется авторизация",
@@ -511,9 +511,9 @@ class MainWindow(QMainWindow):
             else:
                 return
         
-        projects = self.app.project_repo.get_by_user(user.id)
+        projects = self.app.project_repo.get_by_user(user['id'])
         if not projects:
-            project = self.app.project_service.create_project(user.id, "Основной проект")
+            project = self.app.project_service.create_project(user['id'], "Основной проект")
             if not project:
                 self.status_bar.showMessage("❌ Ошибка создания проекта")
                 return
@@ -521,8 +521,8 @@ class MainWindow(QMainWindow):
         else:
             project_id = projects[0].id
         
-        self.app.sync_service.set_access_token(user.access_token)
-        self.app.sync_service.set_user(user.user_id_avito)
+        self.app.sync_service.set_access_token(user['access_token'])
+        self.app.sync_service.set_user(user['user_id_avito'])
         
         self.status_bar.showMessage("🔄 Синхронизация...")
         
@@ -644,7 +644,7 @@ class MainWindow(QMainWindow):
         if reply == QMessageBox.Yes:
             try:
                 user = self.app.get_current_user()
-                success = self.app.sync_service.delete_item(user.user_id_avito, item_id)
+                success = self.app.sync_service.delete_item(user['user_id_avito'], item_id)
                 if success:
                     items = self.app.item_repo.get_by_project(self.current_project_id)
                     for item in items:
@@ -677,7 +677,7 @@ class MainWindow(QMainWindow):
         
         try:
             user = self.app.get_current_user()
-            result = self.app.sync_service.update_item_status(user.user_id_avito, item_id, new_status)
+            result = self.app.sync_service.update_item_status(user['user_id_avito'], item_id, new_status)
             if result:
                 self.status_bar.showMessage(f"{success_message} объявление {item_id}")
                 self.load_items()
