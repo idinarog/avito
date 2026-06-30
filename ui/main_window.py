@@ -16,6 +16,8 @@ from core.metrics_calculator import MetricsCalculator
 
 
 class MainWindow(QMainWindow):
+    """Главное окно с двумя панелями"""
+
     def __init__(self, app: Application):
         super().__init__()
         self.app = app
@@ -24,21 +26,31 @@ class MainWindow(QMainWindow):
         self.setGeometry(50, 50, 1600, 900)
         self.setMinimumSize(1200, 700)
 
+        # Применяем стили
         self.apply_styles()
+
+        # Создаем интерфейс
         self.setup_ui()
+
+        # Подключаем сигналы
         self.connect_signals()
+
+        # Загружаем данные
         self.load_initial_data()
 
     def apply_styles(self):
+        """Применение QSS стилей"""
         self.setStyleSheet("""
             QMainWindow {
                 background-color: #0a0e17;
             }
+
             QFrame {
                 background-color: #111927;
                 border: 1px solid #1a2a3a;
                 border-radius: 8px;
             }
+
             QPushButton {
                 background-color: #1a2a3a;
                 color: #c8d0dc;
@@ -75,6 +87,16 @@ class MainWindow(QMainWindow):
                 background-color: #8a3a3a;
                 border-color: #aa4a4a;
             }
+            QPushButton.export-btn {
+                background-color: #2a5a3a;
+                border-color: #3a7a4a;
+                color: #ffffff;
+            }
+            QPushButton.export-btn:hover {
+                background-color: #3a7a4a;
+                border-color: #5a9a6a;
+            }
+
             QLineEdit {
                 background-color: #0d1520;
                 color: #e8eef4;
@@ -89,6 +111,7 @@ class MainWindow(QMainWindow):
             QLineEdit::placeholder {
                 color: #5a7a9a;
             }
+
             QComboBox {
                 background-color: #0d1520;
                 color: #e8eef4;
@@ -123,9 +146,11 @@ class MainWindow(QMainWindow):
             QComboBox QAbstractItemView::item:hover {
                 background-color: #1a2a3a;
             }
+
             QLabel {
                 color: #a8b8c8;
             }
+
             QTableWidget {
                 background-color: #0d1520;
                 border: none;
@@ -158,6 +183,7 @@ class MainWindow(QMainWindow):
                 background-color: #0d1520;
                 border: none;
             }
+
             QStatusBar {
                 background-color: #0d1520;
                 color: #5a7a9a;
@@ -168,6 +194,7 @@ class MainWindow(QMainWindow):
             QStatusBar QLabel {
                 color: #5a7a9a;
             }
+
             QDateEdit {
                 background-color: #0d1520;
                 color: #e8eef4;
@@ -189,6 +216,27 @@ class MainWindow(QMainWindow):
                 border-top: 5px solid #5a7a9a;
                 margin-right: 4px;
             }
+            QCalendarWidget {
+                background-color: #0d1520;
+                color: #e8eef4;
+            }
+            QCalendarWidget QWidget {
+                background-color: #0d1520;
+                color: #e8eef4;
+            }
+            QCalendarWidget QToolButton {
+                color: #e8eef4;
+                background-color: transparent;
+            }
+            QCalendarWidget QMenu {
+                background-color: #0d1520;
+                color: #e8eef4;
+            }
+            QCalendarWidget QSpinBox {
+                background-color: #0d1520;
+                color: #e8eef4;
+            }
+
             QListWidget {
                 background-color: #0d1520;
                 border: none;
@@ -209,6 +257,7 @@ class MainWindow(QMainWindow):
             QListWidget::item:hover {
                 background-color: #1a2a3a;
             }
+
             QScrollBar:vertical {
                 background-color: #0d1520;
                 width: 8px;
@@ -225,6 +274,7 @@ class MainWindow(QMainWindow):
             QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
                 height: 0;
             }
+
             QScrollBar:horizontal {
                 background-color: #0d1520;
                 height: 8px;
@@ -244,6 +294,7 @@ class MainWindow(QMainWindow):
         """)
 
     def setup_ui(self):
+        """Создание интерфейса с двумя панелями"""
         central = QWidget()
         self.setCentralWidget(central)
 
@@ -252,28 +303,35 @@ class MainWindow(QMainWindow):
         main_layout.setContentsMargins(8, 8, 8, 8)
         central.setLayout(main_layout)
 
+        # Верхняя панель с заголовком и кнопками
         self.create_header(main_layout)
 
+        # Панель фильтров
         self.filter_panel = FilterPanel()
         self.filter_panel.filter_applied.connect(self.apply_filters)
         main_layout.addWidget(self.filter_panel)
 
+        # Основные панели (две колонки)
         panels_layout = QHBoxLayout()
         panels_layout.setSpacing(8)
 
+        # Левая панель - Проекты (30%)
         self.project_panel = ProjectPanel(self.app)
         self.project_panel.project_selected.connect(self.on_project_selected)
         panels_layout.addWidget(self.project_panel, 3)
 
+        # Правая панель - Объявления (70%)
         self.items_panel = ItemsPanel(self.app)
         self.items_panel.item_double_clicked.connect(self.on_item_double_click)
         panels_layout.addWidget(self.items_panel, 7)
 
         main_layout.addLayout(panels_layout, 1)
 
+        # Статус-бар
         self.status_bar = ModernStatusBar()
         self.setStatusBar(self.status_bar)
 
+        # Подключаем статус-бар к событиям
         self.app.event_bus.sync_started.connect(
             lambda: self.status_bar.set_sync_status("Синхронизация...")
         )
@@ -282,9 +340,11 @@ class MainWindow(QMainWindow):
         )
 
     def create_header(self, parent_layout):
+        """Создание верхней панели"""
         header = QHBoxLayout()
         header.setSpacing(20)
 
+        # Логотип
         logo = QLabel("📁 Avito Commander 1.0")
         logo.setStyleSheet("""
             color: #8aabca;
@@ -297,39 +357,54 @@ class MainWindow(QMainWindow):
 
         header.addStretch()
 
+        # Информация о пользователе
         user = self.app.get_current_user()
         if user:
             user_label = QLabel(f"👤 {user.username}")
             user_label.setStyleSheet("color: #5a7a9a; font-size: 13px;")
             header.addWidget(user_label)
 
+        # Время
         self.time_label = QLabel()
         self.time_label.setStyleSheet("color: #5a7a9a; font-size: 13px; font-family: monospace;")
         header.addWidget(self.time_label)
 
+        # Таймер для времени
         timer = QTimer(self)
         timer.timeout.connect(self.update_time)
         timer.start(1000)
         self.update_time()
 
+        # Кнопка "Экспорт XML"
+        self.export_btn = QPushButton("📤 Экспорт XML")
+        self.export_btn.setProperty("class", "export-btn")
+        self.export_btn.clicked.connect(self.export_xml_feed)
+        self.export_btn.setFixedHeight(30)
+        header.addWidget(self.export_btn)
+
         parent_layout.addLayout(header)
 
     def connect_signals(self):
+        """Подключение сигналов"""
         self.app.event_bus.items_updated.connect(self.refresh)
         self.app.event_bus.project_changed.connect(self.refresh)
 
     def load_initial_data(self):
+        """Загрузка начальных данных"""
         self.refresh()
 
     def refresh(self):
+        """Обновление всех панелей"""
         self.project_panel.refresh()
         self.items_panel.refresh()
 
     def on_project_selected(self, project_id):
+        """Обработчик выбора проекта"""
         self.items_panel.load_items(project_id)
         self.filter_panel.set_count(self.items_panel.table.rowCount())
 
     def on_item_double_click(self, item):
+        """Обработчик двойного клика по объявлению"""
         QMessageBox.information(
             self,
             "Объявление",
@@ -343,8 +418,57 @@ class MainWindow(QMainWindow):
         )
 
     def apply_filters(self, filters):
+        """Применение фильтров"""
+        # TODO: Реализовать фильтрацию на уровне ItemsPanel
         self.status_bar.set_message("🔍 Фильтры применены")
 
+    def export_xml_feed(self):
+        """Запускает скрипт публикации XML-фида"""
+        import subprocess
+        import sys
+        from pathlib import Path
+
+        script_path = Path(__file__).parent.parent / "avito_publish.py"
+
+        if not script_path.exists():
+            QMessageBox.critical(self, "Ошибка", "Скрипт avito_publish.py не найден!")
+            return
+
+        reply = QMessageBox.question(
+            self,
+            "Экспорт XML",
+            "Будет сгенерирован и опубликован XML-фид.\n"
+            "Продолжить?",
+            QMessageBox.Yes | QMessageBox.No
+        )
+        if reply == QMessageBox.Yes:
+            self.status_bar.set_message("⏳ Генерация и публикация XML...")
+            try:
+                result = subprocess.run(
+                    [sys.executable, str(script_path)],
+                    capture_output=True,
+                    text=True
+                )
+                if result.returncode == 0:
+                    self.status_bar.set_message("✅ XML-фид успешно опубликован!")
+                    QMessageBox.information(
+                        self,
+                        "Успех",
+                        "XML-фид опубликован и доступен по ссылке:\n"
+                        "https://raw.githubusercontent.com/idinarog/avitoxml/main/avito_feed.xml"
+                    )
+                else:
+                    self.status_bar.set_message("❌ Ошибка публикации XML")
+                    QMessageBox.critical(
+                        self,
+                        "Ошибка",
+                        f"Ошибка выполнения:\n{result.stderr}"
+                    )
+            except Exception as e:
+                self.status_bar.set_message("❌ Ошибка")
+                QMessageBox.critical(self, "Ошибка", str(e))
+
     def update_time(self):
+        """Обновление времени"""
         from datetime import datetime
         self.time_label.setText(datetime.now().strftime("%H:%M:%S"))

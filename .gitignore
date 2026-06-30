@@ -1,14 +1,54 @@
-venv/
+# Python
 __pycache__/
-*.pyc
-.DS_Store
-avitoxml/
-*.xml
+*.py[cod]
+*.so
+.Python
+venv/
+env/
+ENV/
 *.db
-avito_feed_*.xml
+*.sqlite3
+
+# Конфиденциальные данные
+.env
+.env.local
+.env.*.local
+
+# Логи
+*.log
+
+# Файлы IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Файлы сборки
+dist/
+build/
+*.egg-info/
+
+# Временные и служебные файлы
+*.backup
+*.bak
+apply_*.py
+fix_*.py
+upgrade_*.py
 *.xml
-avito_feed_*.xml
-avitoxml/
-*.db
-chromedriver.zip
+*.zip
 chromedriver
+chromedriver.zip
+avitoxml/
+avitoxml_backup/
+structure.txt
+clean_project.zip
+main_app.py.backup
+start_screen.py.backup
+ui/main_window.py.backup
+api/sync_service.py.backup
+
+# Временные файлы и резервные копии
+*.backup
+fix.py
+main_window.py
+services/avito_api.py

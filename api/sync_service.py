@@ -25,7 +25,7 @@ class SyncService:
         """Устанавливает ID пользователя"""
         self.user_id = user_id
     
-    def set_access_token(self, token: str):
+    # DEPRECATED set_access_token удалён
         """Устанавливает токен доступа"""
         self.avito_api.set_access_token(token)
     

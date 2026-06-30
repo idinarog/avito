@@ -1,11 +1,14 @@
-from PyQt5.QtWidgets import QWidget
+from PyQt5.QtWidgets import QWidget, QPushButton, QVBoxLayout
+from core.session import Session
+from ui.login_dialog import LoginDialog
 from PyQt5.QtGui import QPainter, QPixmap, QPen, QColor, QFont
 from PyQt5.QtCore import Qt, QTimer, QTime
 
 
 class StartScreen(QWidget):
-    def __init__(self):
+    def __init__(self, app):
         super().__init__()
+        self.app = app
 
         self.setWindowTitle("Avito Commander")
         self.setFixedSize(1200, 700)
@@ -83,6 +86,15 @@ class StartScreen(QWidget):
 
     def open_main_app(self):
         from main_app import MainApp
+        # 🔐 Проверка авторизации
+        if not Session.access_token:
+            dialog = LoginDialog(self.app)
+            dialog.exec_()
+
+            if not Session.access_token:
+                print("❌ Авторизация не выполнена")
+                return
+
         self.main = MainApp()
         self.main.show()
         self.close()

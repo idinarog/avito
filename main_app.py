@@ -1,201 +1,193 @@
 
-from PyQt5.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QLabel,
-    QTableWidget, QTableWidgetItem, QFrame, QPushButton,
-    QListWidget, QListWidgetItem, QLineEdit
-)
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QColor
+import sys
+from PyQt5.QtWidgets import *
+from PyQt5.QtCore import Qt, QDate
 
 
-class MainApp(QWidget):
+class MainApp(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Avito Commander 1.0")
-        self.setMinimumSize(1400, 900)
+        self.resize(1400, 900)
 
-        self.setStyleSheet(self.get_styles())
+        self.init_ui()
+        self.apply_styles()
 
-        root = QVBoxLayout(self)
-        root.setSpacing(10)
+    def init_ui(self):
+        central = QWidget()
+        self.setCentralWidget(central)
 
-        root.addWidget(self.top_bar())
+        main_layout = QHBoxLayout(central)
 
-        center = QHBoxLayout()
-        center.addWidget(self.left_panel(), 2)
-        center.addWidget(self.right_panel(), 8)
-
-        root.addLayout(center)
-        root.addWidget(self.bottom_bar())
-
-    # =========================
-    # 🔷 TOP BAR
-    # =========================
-    def top_bar(self):
-        bar = QFrame()
-        layout = QHBoxLayout(bar)
-
-        title = QLabel("📁 Avito Commander 1.0")
-
-        search = QLineEdit()
-        search.setPlaceholderText("🔍 Поиск...")
-
-        sync_btn = QPushButton("🔄 Синхронизация")
-        import_btn = QPushButton("⬇ Импорт")
-        export_btn = QPushButton("⬆ Экспорт")
-
-        layout.addWidget(title)
-        layout.addWidget(search)
-        layout.addStretch()
-        layout.addWidget(sync_btn)
-        layout.addWidget(import_btn)
-        layout.addWidget(export_btn)
-
-        return bar
-
-    # =========================
-    # 📂 LEFT PANEL
-    # =========================
-    def left_panel(self):
-        panel = QFrame()
-        layout = QVBoxLayout(panel)
-
-        layout.addWidget(QLabel("📂 ПРОЕКТЫ"))
+        # === SIDEBAR ===
+        sidebar = QVBoxLayout()
 
         self.project_list = QListWidget()
-
-        for name, count in [
-            ("Основной проект", 18),
-            ("Авто", 4),
-            ("Недвижимость", 7),
-            ("Электроника", 12)
-        ]:
-            item = QListWidgetItem(f"{name}   {count}")
-            self.project_list.addItem(item)
-
-        layout.addWidget(self.project_list)
-
-        stats = QLabel(
-            "Всего: 24\n"
-            "Активных: 18\n"
-            "Неактивных: 4\n"
-            "Заблокированных: 2"
-        )
-
-        layout.addWidget(stats)
-
-        return panel
-
-    # =========================
-    # 📄 RIGHT PANEL
-    # =========================
-    def right_panel(self):
-        panel = QFrame()
-        layout = QVBoxLayout(panel)
-
-        layout.addWidget(QLabel("📄 ОБЪЯВЛЕНИЯ"))
-
-        self.table = QTableWidget(4, 11)
-        self.table.setHorizontalHeaderLabels([
-            "ID", "Название", "Цена", "Статус",
-            "Просмотры", "Лиды", "Звонки",
-            "Сообщения", "CTR", "CPL", "CPM"
+        self.project_list.addItems([
+            "Основной проект (18)",
+            "Авто (4)",
+            "Недвижимость (7)",
+            "Электроника (12)"
         ])
 
+        sidebar.addWidget(QLabel("ПРОЕКТЫ"))
+        sidebar.addWidget(self.project_list)
+
+        sidebar_widget = QWidget()
+        sidebar_widget.setLayout(sidebar)
+        sidebar_widget.setFixedWidth(250)
+
+        # === RIGHT SIDE ===
+        right_layout = QVBoxLayout()
+
+        # === TOP BAR ===
+        top_bar = QHBoxLayout()
+
+        self.search = QLineEdit()
+        self.search.setPlaceholderText("Поиск...")
+
+        self.sync_btn = QPushButton("Синхронизация")
+        self.import_btn = QPushButton("Импорт")
+        self.export_btn = QPushButton("Экспорт")
+
+        top_bar.addWidget(self.search)
+        top_bar.addStretch()
+        top_bar.addWidget(self.sync_btn)
+        top_bar.addWidget(self.import_btn)
+        top_bar.addWidget(self.export_btn)
+
+        # === DATE FILTER ===
+        date_layout = QHBoxLayout()
+
+        self.date_from = QDateEdit()
+        self.date_from.setCalendarPopup(True)
+        self.date_from.setDate(QDate.currentDate().addDays(-30))
+
+        self.date_to = QDateEdit()
+        self.date_to.setCalendarPopup(True)
+        self.date_to.setDate(QDate.currentDate())
+
+        date_layout.addWidget(QLabel("Период:"))
+        date_layout.addWidget(self.date_from)
+        date_layout.addWidget(self.date_to)
+        date_layout.addStretch()
+
+        # === TABLE ===
+        self.table = QTableWidget()
+        self.table.setColumnCount(10)
+        self.table.setHorizontalHeaderLabels([
+            "ID", "Название", "Цена", "Статус",
+            "Просмотры", "Звонки", "Сообщения",
+            "Лиды", "CTR", "CPL"
+        ])
+
+        self.table.horizontalHeader().setStretchLastSection(True)
+
+        self.load_mock_data()
+
+        # === BOTTOM STATS ===
+        stats_layout = QHBoxLayout()
+        self.stats_label = QLabel("Просмотры: 0 | Лиды: 0 | CTR: 0%")
+        stats_layout.addWidget(self.stats_label)
+
+        # === ASSEMBLE ===
+        right_layout.addLayout(top_bar)
+        right_layout.addLayout(date_layout)
+        right_layout.addWidget(self.table)
+        right_layout.addLayout(stats_layout)
+
+        right_widget = QWidget()
+        right_widget.setLayout(right_layout)
+
+        main_layout.addWidget(sidebar_widget)
+        main_layout.addWidget(right_widget)
+
+        # === SIGNALS ===
+        self.sync_btn.clicked.connect(self.sync)
+        self.date_from.dateChanged.connect(self.filter_table)
+        self.date_to.dateChanged.connect(self.filter_table)
+
+    def load_mock_data(self):
         data = [
-            ["1", "MacBook Pro", "1500 ₽", "Active", "10", "5", "2", "3", "2.3%", "250", "150"],
-            ["2", "iPhone 15", "850 ₽", "Active", "5", "1", "0", "1", "1.2%", "170", "170"],
-            ["3", "Квартира", "5000 ₽", "Inactive", "20", "10", "3", "4", "3.4%", "1000", "250"],
-            ["4", "Дизайнер", "2000 ₽", "Blocked", "0", "0", "0", "0", "-", "-", "-"],
+            [1, "MacBook Pro", 1500, "Active", 10, 2, 3, 5, "2.3%", 250],
+            [2, "iPhone 15", 850, "Active", 5, 0, 1, 1, "1.2%", 170],
+            [3, "Квартира", 5000, "Inactive", 20, 3, 4, 7, "3.4%", 1000],
+            [4, "Дизайнер", 2000, "Blocked", 0, 0, 0, 0, "-", "-"],
         ]
 
-        for row, row_data in enumerate(data):
-            for col, value in enumerate(row_data):
-                item = QTableWidgetItem(value)
-                item.setTextAlignment(Qt.AlignCenter)
-                self.table.setItem(row, col, item)
+        self.table.setRowCount(len(data))
 
-        layout.addWidget(self.table)
+        for row, item in enumerate(data):
+            for col, val in enumerate(item):
+                cell = QTableWidgetItem(str(val))
 
-        layout.addWidget(self.metrics_panel())
+                if col == 3:
+                    if val == "Active":
+                        cell.setForeground(Qt.green)
+                    elif val == "Inactive":
+                        cell.setForeground(Qt.yellow)
+                    else:
+                        cell.setForeground(Qt.red)
 
-        return panel
+                self.table.setItem(row, col, cell)
+
+    def filter_table(self):
+        pass
+
+    def sync(self):
+        print("🔄 Синхронизация (пока заглушка)")
+
+    def apply_styles(self):
+        self.setStyleSheet(
+            '''
+            QWidget {
+                background-color: #0b1220;
+                color: #cbd5e1;
+                font-size: 13px;
+            }
+
+            QLineEdit, QDateEdit {
+                background: #111827;
+                border: 1px solid #1f2937;
+                padding: 5px;
+            }
+
+            QPushButton {
+                background: #1f2937;
+                border: 1px solid #374151;
+                padding: 6px;
+            }
+
+            QPushButton:hover {
+                background: #2563eb;
+            }
+
+            QTableWidget {
+                background: #020617;
+                gridline-color: #1e293b;
+            }
+
+            QHeaderView::section {
+                background: #0f172a;
+                padding: 5px;
+            }
+            '''
+        )
+
+
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    window = MainApp()
+    window.show()
+    sys.exit(app.exec_())
+
 
     # =========================
-    # 📊 METRICS PANEL
+    # 🔐 LOGIN
     # =========================
-    def metrics_panel(self):
-        frame = QFrame()
-        layout = QHBoxLayout(frame)
+    def open_login(self):
+        dialog = LoginDialog()
 
-        def block(title, value):
-            b = QVBoxLayout()
-            b.addWidget(QLabel(title))
-            val = QLabel(value)
-            val.setStyleSheet("font-size: 18px; color: #4a8aba;")
-            b.addWidget(val)
-            return b
+        token = dialog.exec_()
 
-        layout.addLayout(block("Просмотры", "10"))
-        layout.addLayout(block("Лиды", "5"))
-        layout.addLayout(block("Звонки", "2"))
-        layout.addLayout(block("Сообщения", "3"))
-        layout.addLayout(block("CTR", "2.3%"))
-
-        return frame
-
-    # =========================
-    # ⬇️ BOTTOM BAR
-    # =========================
-    def bottom_bar(self):
-        bar = QFrame()
-        layout = QHBoxLayout(bar)
-
-        layout.addWidget(QLabel("[F1] Помощь"))
-        layout.addWidget(QLabel("[F3] Просмотр"))
-        layout.addWidget(QLabel("[F4] Правка"))
-        layout.addWidget(QLabel("[F7] Создать"))
-        layout.addWidget(QLabel("[F8] Удалить"))
-        layout.addStretch()
-        layout.addWidget(QLabel("[F10] Выход"))
-
-        return bar
-
-    # =========================
-    # 🎨 STYLES
-    # =========================
-    def get_styles(self):
-        return """
-        QWidget {
-            background-color: #0a0e17;
-            color: #cfd8e3;
-            font-family: Arial;
-        }
-
-        QFrame {
-            background-color: #111927;
-            border: 1px solid #1a2a3a;
-            border-radius: 6px;
-        }
-
-        QTableWidget {
-            background-color: #0f1624;
-            gridline-color: #1a2a3a;
-        }
-
-        QPushButton {
-            background-color: #1a2a3a;
-            padding: 6px;
-            border-radius: 4px;
-        }
-
-        QPushButton:hover {
-            background-color: #4a8aba;
-        }
-
-        QLineEdit {
-            background-color: #0f1624;
-            border: 1px solid #1a2a3a;
-            padding: 6px;
-        }
-        """
+        print("LOGIN RESULT:", token)
