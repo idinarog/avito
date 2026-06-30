@@ -2,15 +2,16 @@
 # -*- coding: utf-8 -*-
 
 """
-Финальный генератор XML-фида для автозагрузки Avito
+Финальный генератор XML-фида для автозагрузки Avito.
+Генерирует XML с меткой времени и копирует в avito_feed.xml.
 """
 
 import sys
+import shutil
 import xml.etree.ElementTree as ET
 from xml.dom import minidom
 from datetime import datetime
 from pathlib import Path
-from typing import List, Dict, Optional
 
 sys.path.insert(0, str(Path(__file__).parent))
 
@@ -72,6 +73,10 @@ class AvitoXmlFeedGenerator:
                     f.write(xml_str)
                 print(f"✅ XML-фид сохранен: {output_file}")
                 print(f"📊 Всего объявлений: {total_ads}")
+                # Сохраняем копию как avito_feed.xml
+                permanent_file = "avito_feed.xml"
+                shutil.copy2(output_file, permanent_file)
+                print(f"✅ Постоянная копия сохранена как: {permanent_file}")
             return xml_str
         except Exception as e:
             print(f"❌ Ошибка генерации XML: {e}")
@@ -169,7 +174,6 @@ class AvitoXmlFeedGenerator:
 
 
 if __name__ == "__main__":
-    import sys
     from database.models import Project
     db = DatabaseManager()
     db.init_db()

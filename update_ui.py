@@ -1,4 +1,6 @@
+from pathlib import Path
 
+main_app_code = r'''
 from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel,
     QTableWidget, QTableWidgetItem, QFrame, QPushButton,
@@ -199,3 +201,8 @@ class MainApp(QWidget):
             padding: 6px;
         }
         """
+'''
+
+Path("main_app.py").write_text(main_app_code, encoding="utf-8")
+
+print("✅ UI обновлён под финальный макет")

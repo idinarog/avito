@@ -276,7 +276,7 @@ class MainWindow(QMainWindow):
             
             value = QLabel(default)
             value.setStyleSheet("color: #fff; font-size: 16px; font-weight: bold;")
-            value.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            value.setAlignment(Qt.AlignCenter)
             layout.addWidget(value)
             
             widget.setLayout(layout)

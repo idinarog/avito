@@ -37,12 +37,12 @@ class LoginDialog(QDialog):
         # Заголовок
         title = QLabel("🔑 Avito Commander")
         title.setFont(QFont("Arial", 20, QFont.Weight.Bold))
-        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        title.setAlignment(Qt.AlignCenter)
         layout.addWidget(title)
         
         # Подзаголовок
         subtitle = QLabel("Войдите в свой аккаунт")
-        subtitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        subtitle.setAlignment(Qt.AlignCenter)
         subtitle.setStyleSheet("color: #666;")
         layout.addWidget(subtitle)
         
@@ -111,7 +111,7 @@ class LoginDialog(QDialog):
         
         # Статус
         self.status_label = QLabel("")
-        self.status_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.status_label.setAlignment(Qt.AlignCenter)
         self.status_label.setStyleSheet("color: #FF6B6B; font-weight: bold;")
         layout.addWidget(self.status_label)
         
