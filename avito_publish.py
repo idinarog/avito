@@ -3,31 +3,23 @@
 
 """
 Автоматическая публикация XML-фида Avito Commander.
-Генерация → Валидация → Публикация на GitHub → Проверка на валидаторе Avito.
+Генерация → Валидация → Публикация на GitHub → Проверка.
 """
 
 import os
 import sys
 import subprocess
 import shutil
-import time
+import webbrowser
+import xml.etree.ElementTree as ET
 from pathlib import Path
 from datetime import datetime
 
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.chrome.service import Service
-from webdriver_manager.chrome import ChromeDriverManager
-
-# ======================== НАСТРОЙКИ ============================
 GITHUB_REPO_PATH = Path.home() / "avito_commander" / "avitoxml"
 GITHUB_REMOTE_URL = "https://github.com/idinarog/avitoxml.git"
 XML_FILENAME = "avito_feed.xml"
 GENERATOR_SCRIPT = "update_phase5_xml_final.py"
 VALIDATOR_URL = "https://autoload.avito.ru/format/xmlcheck/"
-# ==============================================================
 
 def print_header(text):
     print("\n" + "="*60)
@@ -52,12 +44,10 @@ def find_latest_xml():
     return xml_files[0] if xml_files else None
 
 def validate_xml(xml_path):
-    # ... (оставляем без изменений) ...
     print_header("2️⃣ ВАЛИДАЦИЯ XML")
     print("📄 Файл: {}".format(xml_path.name))
     print("📅 Создан: {}".format(datetime.fromtimestamp(xml_path.stat().st_mtime).strftime('%Y-%m-%d %H:%M:%S')))
     try:
-        import xml.etree.ElementTree as ET
         tree = ET.parse(xml_path)
         root = tree.getroot()
         errors, warnings = [], []
@@ -97,8 +87,11 @@ def validate_xml(xml_path):
         else:
             print("\n✅ Всё отлично! XML корректен.")
             return True
-    except Exception as e:
+    except ET.ParseError as e:
         print("❌ Ошибка парсинга XML: {}".format(e))
+        return False
+    except Exception as e:
+        print("❌ Неожиданная ошибка: {}".format(e))
         return False
 
 def publish_to_github(xml_path):
@@ -114,6 +107,19 @@ def publish_to_github(xml_path):
         print("❌ Ошибка копирования: {}".format(e))
         return False
     os.chdir(GITHUB_REPO_PATH)
+    status = subprocess.run(["git", "status", "--porcelain"], capture_output=True, text=True)
+    if not status.stdout.strip():
+        print("ℹ️ Нет изменений для коммита. Файл уже актуален.")
+        return True
+    try:
+        subprocess.run(["git", "config", "user.name"], check=True, capture_output=True)
+        subprocess.run(["git", "config", "user.email"], check=True, capture_output=True)
+    except subprocess.CalledProcessError:
+        print("⚠️ Git не настроен! Выполните:")
+        print("  cd {}".format(GITHUB_REPO_PATH))
+        print('  git config user.name "Ваше Имя"')
+        print('  git config user.email "ваш_email@example.com"')
+        return False
     try:
         subprocess.run(["git", "add", XML_FILENAME], check=True, capture_output=True)
         commit_msg = "Обновление фида от {}".format(datetime.now().strftime('%Y-%m-%d %H:%M'))
@@ -127,60 +133,28 @@ def publish_to_github(xml_path):
         print("❌ Ошибка Git: {}".format(e.stderr.decode() if e.stderr else str(e)))
         return False
 
-def validate_xml_by_link(link):
-    """
-    Открывает валидатор Avito, вставляет ссылку, запускает проверку и выводит результат.
-    """
+def open_validator():
     print_header("4️⃣ ПРОВЕРКА НА ВАЛИДАТОРЕ AVITO")
-    print("🌐 Открываю валидатор и проверяю ссылку...")
-
-    # Настройка драйвера
-    options = webdriver.ChromeOptions()
-    options.add_argument("--headless=new")  # Уберите эту строку, если хотите видеть браузер
-    options.add_argument("--no-sandbox")
-    options.add_argument("--disable-dev-shm-usage")
+    link = "https://raw.githubusercontent.com/idinarog/avitoxml/main/{}".format(XML_FILENAME)
+    print("\n🔗 Ваша ссылка для проверки:")
+    print(f"   {link}")
 
     try:
-        driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
-        driver.get(VALIDATOR_URL)
-        wait = WebDriverWait(driver, 20)
+        import pyperclip
+        pyperclip.copy(link)
+        print("✅ Ссылка скопирована в буфер обмена!")
+    except ImportError:
+        print("⚠️ Установите pyperclip: pip install pyperclip")
+        print("   Или скопируйте ссылку вручную.")
 
-        # 1. Переключиться на вкладку "По ссылке"
-        link_tab = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[contains(text(),'По ссылке')]")))
-        link_tab.click()
-        print("   ✅ Переключились на вкладку 'По ссылке'")
+    print("\n👉 Действия:")
+    print("   1. Откройте страницу валидатора (браузер откроется автоматически)")
+    print("   2. Переключитесь на вкладку 'По ссылке'")
+    print("   3. Вставьте ссылку (Ctrl+V / Cmd+V) и нажмите 'Проверить'")
+    print("   4. Убедитесь, что ошибок нет")
 
-        # 2. Вставить ссылку
-        link_input = wait.until(EC.presence_of_element_located((By.XPATH, "//input[@type='url' or @placeholder='Ссылка']")))
-        link_input.clear()
-        link_input.send_keys(link)
-        print("   ✅ Ссылка вставлена")
-
-        # 3. Нажать кнопку "Проверить"
-        check_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[contains(text(),'Проверить')]")))
-        check_button.click()
-        print("   ✅ Нажата кнопка 'Проверить'")
-
-        # 4. Дождаться результата
-        time.sleep(5)  # Даём время на проверку
-        result_element = wait.until(EC.presence_of_element_located((By.XPATH, "//div[contains(@class,'result')]")))
-        result_text = result_element.text
-
-        print("\n📋 РЕЗУЛЬТАТ ПРОВЕРКИ:")
-        print("-" * 40)
-        print(result_text)
-        print("-" * 40)
-
-        driver.quit()
-        return True
-
-    except Exception as e:
-        print("❌ Ошибка при проверке на валидаторе: {}".format(e))
-        try:
-            driver.quit()
-        except:
-            pass
-        return False
+    webbrowser.open(VALIDATOR_URL)
+    return True
 
 def main():
     print("""
@@ -189,27 +163,17 @@ def main():
     ║     Генерация → Валидация → GitHub → Проверка          ║
     ╚═══════════════════════════════════════════════════════════╝
     """)
-
     xml_path = generate_xml()
     if not xml_path:
         return
-
     if not validate_xml(xml_path):
         print("\n❌ Локальная валидация не пройдена. Исправьте ошибки и попробуйте снова.")
         return
-
     if not publish_to_github(xml_path):
-        print("\n❌ Публикация на GitHub не удалась.")
-        return
-
-    # Формируем ссылку на файл
-    raw_link = "https://raw.githubusercontent.com/idinarog/avitoxml/main/{}".format(XML_FILENAME)
-
-    # Выполняем проверку на валидаторе Avito
-    validate_xml_by_link(raw_link)
-
+        print("\n⚠️ Публикация на GitHub не удалась.")
+    open_validator()
     print("\n" + "="*60)
-    print("✅ ВСЁ ГОТОВО! Файл опубликован и проверен.")
+    print("✅ ВСЁ ГОТОВО! Проверьте фид на валидаторе и вставьте ссылку в настройки Avito.")
     print("="*60)
 
 if __name__ == "__main__":

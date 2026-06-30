@@ -10,3 +10,5 @@ avito_feed_*.xml
 avito_feed_*.xml
 avitoxml/
 *.db
+chromedriver.zip
+chromedriver
