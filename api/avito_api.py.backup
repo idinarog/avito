@@ -1,0 +1,83 @@
+"""
+Модуль для работы с Avito API
+"""
+
+import requests
+import json
+from datetime import datetime, timedelta
+from typing import Optional, Dict, List, Any
+import os
+
+
+class AvitoAuth:
+    """Класс для авторизации в Avito API"""
+    
+    def __init__(self, client_id: str, client_secret: str, redirect_uri: str = None):
+        self.client_id = client_id
+        self.client_secret = client_secret
+        self.redirect_uri = redirect_uri or "http://localhost:8080"
+        self.token_url = "https://api.avito.ru/token"
+        self.access_token = None
+        self.refresh_token = None
+        self.token_expires_at = None
+    
+    def get_valid_token(self) -> Optional[str]:
+        """Возвращает действительный токен"""
+        return self.access_token
+
+
+class AvitoAPI:
+    """Клиент для работы с Avito API"""
+    
+    def __init__(self, client_id: str, client_secret: str):
+        self.client_id = client_id
+        self.client_secret = client_secret
+        self.base_url = "https://api.avito.ru/"
+        self.auth = AvitoAuth(client_id, client_secret)
+    
+    def _get_headers(self) -> Dict[str, str]:
+        """Формирует заголовки для запросов"""
+        token = self.auth.get_valid_token()
+        if not token:
+            token = "temp_token_for_testing"  # Заглушка для тестирования
+        
+        return {
+            "Authorization": f"Bearer {token}",
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+        }
+    
+    def get_items(self, user_id: str, status: str = None, page: int = 1, per_page: int = 50) -> Dict:
+        """Получение списка объявлений"""
+        # Заглушка для тестирования
+        return {
+            "items": [
+                {
+                    "id": "1",
+                    "title": "Тестовое объявление 1",
+                    "price": 1000,
+                    "status": "active",
+                    "stats": {"views": 10, "calls": 2, "favorites": 1}
+                },
+                {
+                    "id": "2",
+                    "title": "Тестовое объявление 2",
+                    "price": 2000,
+                    "status": "inactive",
+                    "stats": {"views": 5, "calls": 0, "favorites": 0}
+                }
+            ],
+            "total_pages": 1
+        }
+    
+    def create_item(self, user_id: str, item_data: Dict) -> Dict:
+        """Создание объявления"""
+        return {"id": "3", "status": "created", **item_data}
+    
+    def update_item(self, user_id: str, item_id: str, item_data: Dict) -> Dict:
+        """Обновление объявления"""
+        return {"id": item_id, "status": "updated", **item_data}
+    
+    def delete_item(self, user_id: str, item_id: str) -> bool:
+        """Удаление объявления"""
+        return True
